@@ -1,0 +1,1 @@
+Expo mobile app demo. Use Expo CLI to run on device via Expo Go.
