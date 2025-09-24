@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sidebar Collassabile</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<style>
+html, body { margin:0; padding:0; height:100%; }
+body { display:flex; min-height:100vh; font-family:'Poppins', sans-serif; position:relative; }
+
+/* Sidebar */
+.sidebar {
+  display:flex; flex-direction:column; height:100vh;
+  width:260px; background:#0c1e35; color:#7d84ab;
+  transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+  flex-shrink:0; position:relative;
+}
+.sidebar.collapsed { width:60px; }
+
+.sidebar-header { height:100px; display:flex; align-items:center; padding:0 20px; position:relative; }
+
+/* Logo puzzle + Colorado */
+.logo-composite { display:flex; align-items:center; position:relative; }
+.puzzle-container { width:35px; height:35px; display:flex; align-items:center; justify-content:center; overflow:visible; }
+.puzzle-icon { font-size:5px; color:#ff8100; }
+#sparkles { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+.logo-composite h5 { display:flex; align-items:center; margin:0 0 0 10px; font-size:20px; line-height:30px; transition:0.3s; }
+.logo-composite h5 span { display:inline-block; opacity:0; transform: translateY(-10px) scale(0.5); color:#ff8100; }
+.logo-composite h5 span.show { opacity:1; transform: translateY(0) scale(1); transition: transform 0.3s ease, opacity 0.3s ease; }
+
+/* Animazioni */
+@keyframes puzzle-grow {
+  0% { font-size:5px; opacity:1; }
+  30% { font-size:20px; }
+  60% { font-size:38px; }
+  100% { font-size:35px; }
+}
+@keyframes flash-burst {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  40%  { transform: translate(-50%, -50%) scale(1.5); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+}
+@keyframes sparkle {
+  0%{opacity:0;transform:translate(0,0) scale(0);}
+  50%{opacity:1;transform:translate(10px,-10px) scale(1.2);}
+  100%{opacity:0;transform:translate(20px,-20px) scale(0.5);}
+}
+@keyframes puzzle-shake {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-15deg); }
+  40% { transform: rotate(15deg); }
+  60% { transform: rotate(-10deg); }
+  80% { transform: rotate(10deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Sidebar contenuto */
+.sidebar.collapsed h5 { opacity:0; }
+.sidebar-content { flex:1; overflow-y:auto; }
+.menu { list-style:none; padding:0; margin:0; }
+.menu-item a { display:flex; align-items:center; padding:0 20px; height:50px; color:inherit; cursor:pointer; text-decoration:none; }
+.menu-icon { width:35px; display:flex; align-items:center; justify-content:center; margin-right:10px; font-size:1.2rem; }
+.sidebar.collapsed .menu-title { display:none; }
+
+/* Sub-menu dolce e fluido */
+.sub-menu-list { max-height:0; overflow:hidden; background-color:#0b1a2c; padding-left:0; margin:0; transition: max-height 0.35s ease, padding 0.35s ease; }
+.sub-menu-list.show { padding-left:20px; max-height:500px; }
+
+.sidebar-footer { height:230px; padding:20px; background:#162d4a; text-align:center; font-size:0.8em; color:white; display:flex; flex-direction:column; justify-content:center; }
+
+/* Frame superiore */
+.top-frame {
+  height: 3cm;
+  background: #1a355a;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+  font-size: 1.2em;
+  font-weight: 500;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* Contenuto */
+.main-area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+}
+
+/* Icone */
+.ri-vip-diamond-fill::before { content:"💎"; }
+.ri-bar-chart-2-fill::before { content:"📊"; }
+.ri-shopping-cart-fill::before { content:"🛒"; }
+
+/* Pulsante collapser esterno spostato in alto */
+#btn-collapse {
+  position: absolute;
+  top: 15px;
+  left: calc(250px - 15px);
+  width: 30px; 
+  height: 30px;
+  background: #00829f;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: left 0.3s, transform 0.3s;
+  z-index: 10;
+}
+.sidebar.collapsed + #btn-collapse {
+  left: calc(60px - 15px);
+  transform: rotate(180deg);
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header logo-composite">
+    <div class="puzzle-container">
+      <i class="fa fa-puzzle-piece puzzle-icon" id="puzzle"></i>
+      <div id="sparkles"></div>
+    </div>
+    <h5 id="colorado">
+      <span>C</span><span>o</span><span>l</span><span>o</span><span>r</span><span>a</span><span>d</span><span>o</span>
+    </h5>
+  </div>
+
+  <div class="sidebar-content">
+    <ul class="menu">
+      <li class="menu-item sub-menu">
+        <a><span class="menu-icon ri-vip-diamond-fill"></span><span class="menu-title">Components</span></a>
+        <ul class="sub-menu-list">
+          <li class="menu-item"><a><span class="menu-icon">🟦</span><span class="menu-title">Grid</span></a></li>
+          <li class="menu-item"><a><span class="menu-icon">📐</span><span class="menu-title">Layout</span></a></li>
+          <li class="menu-item sub-menu">
+            <a><span class="menu-icon">📝</span><span class="menu-title">Forms</span></a>
+            <ul class="sub-menu-list">
+              <li class="menu-item"><a><span class="menu-icon">⌨️</span><span class="menu-title">Input</span></a></li>
+              <li class="menu-item"><a><span class="menu-icon">🔽</span><span class="menu-title">Select</span></a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+      <li class="menu-item sub-menu">
+        <a><span class="menu-icon ri-bar-chart-2-fill"></span><span class="menu-title">Charts</span></a>
+        <ul class="sub-menu-list">
+          <li class="menu-item"><a><span class="menu-icon">🥧</span><span class="menu-title">Pie chart</span></a></li>
+          <li class="menu-item"><a><span class="menu-icon">📈</span><span class="menu-title">Line chart</span></a></li>
+        </ul>
+      </li>
+
+      <li class="menu-item sub-menu">
+        <a><span class="menu-icon ri-shopping-cart-fill"></span><span class="menu-title">E-commerce</span></a>
+        <ul class="sub-menu-list">
+          <li class="menu-item"><a><span class="menu-icon">🛍️</span><span class="menu-title">Products</span></a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sidebar-footer">© 2025 Demo Sidebar</div>
+</aside>
+
+<div id="btn-collapse">&lt;</div>
+
+<div class="main-area">
+  <div class="top-frame">
+    Frame superiore
+  </div>
+  <div class="content">
+    <h1>Contenuto principale</h1>
+    <p>Sidebar collassabile con icone e testo che scompare quando collassa.</p>
+  </div>
+</div>
+
+<script>
+const sidebar = document.getElementById('sidebar');
+const btnCollapse = document.getElementById('btn-collapse');
+const puzzle = document.getElementById('puzzle');
+const colorado = document.getElementById('colorado');
+const sparkles = document.getElementById('sparkles');
+
+function waitAnimationEnd(el, name) {
+  return new Promise(resolve => {
+    const handler = e => {
+      if(e.animationName===name){
+        el.removeEventListener('animationend', handler);
+        resolve();
+      }
+    };
+    el.addEventListener('animationend', handler);
+  });
+}
+
+async function animateLogo() {
+  puzzle.style.animation='none'; void puzzle.offsetWidth;
+  colorado.querySelectorAll('span').forEach(s=>{ s.classList.remove('show'); s.style.transition='none'; });
+  void colorado.offsetWidth;
+
+  puzzle.style.animation='puzzle-shake 0.4s ease';
+  await waitAnimationEnd(puzzle,'puzzle-shake');
+
+  puzzle.style.animation='puzzle-grow 1.8s cubic-bezier(0.68,-0.55,0.265,1.55) forwards';
+  sparkles.innerHTML='';
+  for(let i=0;i<6;i++){
+    const s=document.createElement('span');
+    s.textContent='✨';
+    s.style.position='absolute';
+    s.style.left=Math.random()*30+'px';
+    s.style.top=Math.random()*30+'px';
+    s.style.fontSize='8px';
+    s.style.color='#ff8100';
+    s.style.opacity=0;
+    s.style.animation=`sparkle 1s forwards ${0.2+i*0.1}s`;
+    sparkles.appendChild(s);
+  }
+  await waitAnimationEnd(puzzle,'puzzle-grow');
+
+  colorado.querySelectorAll('span').forEach((s,i)=>{
+    setTimeout(()=>{ s.style.transition='transform 0.3s ease, opacity 0.3s ease'; s.classList.add('show'); }, i*100);
+  });
+}
+
+window.addEventListener('load', animateLogo);
+
+btnCollapse.addEventListener('click',()=>{
+  sidebar.classList.toggle('collapsed');
+  animateLogo();
+  if(sidebar.classList.contains('collapsed')){
+    btnCollapse.style.left='60px';
+    btnCollapse.style.transform='rotate(180deg)';
+  }else{
+    btnCollapse.style.left='260px';
+    btnCollapse.style.transform='rotate(0deg)';
+  }
+});
+
+document.querySelectorAll('.menu-item.sub-menu > a').forEach(a=>{
+  a.addEventListener('click',()=>{
+    const sub=a.nextElementSibling;
+    if(!sub) return;
+    a.closest('ul').querySelectorAll('.sub-menu-list.show').forEach(s=>{
+      if(s!==sub) collapseSubMenu(s);
+    });
+    if(sub.classList.contains('show')) collapseSubMenu(sub);
+    else expandSubMenu(sub);
+  });
+});
+
+function expandSubMenu(el){
+  el.style.display='block';
+  const h=el.scrollHeight; el.style.height='0px'; el.offsetHeight;
+  el.style.transition='height 0.35s ease, padding 0.35s ease';
+  el.style.height=h+'px';
+  el.addEventListener('transitionend',function te(){ el.style.height='auto'; el.removeEventListener('transitionend',te); });
+  el.classList.add('show');
+}
+
+function collapseSubMenu(el){
+  el.style.height=el.scrollHeight+'px'; el.offsetHeight;
+  el.style.transition='height 0.35s ease, padding 0.35s ease';
+  el.style.height='0px';
+  el.addEventListener('transitionend',function te(){ el.style.display='none'; el.classList.remove('show'); el.removeEventListener('transitionend',te); });
+}
+</script>
+</body>
+</html>
